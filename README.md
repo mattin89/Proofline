@@ -12,26 +12,161 @@ The score is a ranking aid—not a probability of success, valuation, revenue fo
 
 [View the one-minute PowerPoint overview](docs/Proofline_One_Minute_Overview_v1.pptx)
 
-## Why Proofline
+![Proofline reviewed opportunity screen showing score, coverage, uncertainty, five dimensions, and comparison panels](docs/images/proofline-scoring-evidence.png)
 
-Traditional startup screening can be fast but difficult to audit: sources are mixed together, missing evidence becomes invisible, and a single score can hide weak dimensions. Proofline keeps the reasoning inspectable:
+_A reviewed real-source demonstration keeps the 62.1 Opportunity score, 85.1% coverage, ±18 uncertainty, all five dimensions, and comparator evidence visible together. It is a screening result—not a prediction or recommendation._
 
-- Real companies, founders, source URLs, and provider provenance are retained.
-- Founder, Market, and Idea-vs-Market axes remain independent.
-- Evidence Quality and Revenue Plausibility stay visible as supporting dimensions.
-- Coverage, contradictions, missing criteria, and uncertainty accompany every score.
-- Human review and policy gates remain separate from research and scoring.
+## Why Proofline matters
 
-## What it does
+Early-stage evidence is fragmented across company websites, founder profiles, technical publications, public records, and fast-moving market signals. Conventional screening can collapse that uncertainty into a persuasive but unauditable number. Proofline makes the evidence chain inspectable: it retains citations and provenance, separates independent dimensions, exposes missing criteria and contradictions, and requires explicit human review before a non-binding check can be recorded.
 
-- Discovers startups from an investment thesis or selected internet trends.
-- Investigates a startup, founders, website/social links, or an authorized PDF/DOCX business plan.
-- Uses Tavily for live Search/Extract and optional Exa cross-validation.
-- Adds GitHub repository activity as a discovery indicator—not investment evidence.
-- Checks exact-name context in GLEIF, ClinicalTrials.gov, NIH RePORTER, and USAspending.
-- Compares startup claims with incumbent operating pain and academic or technical research.
-- Projects reviewed opportunities into Queue, policy screening, Team Activity, and user-controlled outreach.
-- Supports a fixed USD 100,000 default check or optional risk-adjusted sizing.
+| Common screening failure | Proofline response | Why it matters |
+|---|---|---|
+| Fragmented public evidence | One normalized, cited evidence ledger | Research can be reproduced, challenged, and refreshed |
+| Opaque startup scores | Five visible dimensions plus coverage, confidence, and uncertainty | A headline score cannot conceal weak or missing evidence |
+| Popularity mistaken for quality | Prestige, followers, likes, virality, and protected traits are excluded | Assessment stays focused on opportunity evidence |
+| Repeated or copied sources | Canonical URL deduplication and independence groups | Provider overlap cannot become false corroboration |
+| Missing data treated as failure | Missing criteria reduce coverage and raise uncertainty | Absence of public evidence does not become an adverse founder judgment |
+| Premature capital automation | Separate policy gates and named human approval | Research software never silently becomes a funding decision |
+
+## Product capabilities
+
+| Capability | What Proofline does | Output | Boundary |
+|---|---|---|---|
+| Internet Trend Radar | Tracks authoritative signals across technology adoption, company challenges, and research frontiers | Selectable signals, region/sector filters, saved watches, and GitHub builder indicators | Trend attention does not score a startup |
+| Thesis discovery | Searches public sources from sector, geography, stage, and thesis inputs | Real candidate and founder signals with retained source links | Candidates remain unreviewed until investigated |
+| Startup investigation | Accepts company/founder names, public URLs, and authorized PDF, DOCX, or text plans | Normalized evidence pack, contacts, comparisons, and material unknowns | Uploaded plans remain self-reported evidence |
+| Retrieval cross-validation | Uses Tavily and optional Exa, then canonicalizes shared URLs | Provider provenance without duplicate source credit | Provider overlap is retrieval corroboration—not an independent source |
+| Opportunity scoring | Calculates five cited dimensions from a fixed rubric | Score, coverage, confidence, uncertainty, contradictions, and citations | Not a probability of success, valuation, or investment advice |
+| Comparator intelligence | Matches startup evidence with incumbent pain and academic or technical research | Explicit comparison panels with source-level traces | Alignment does not prove product efficacy or adoption |
+| Official open data | Checks exact entity matches in GLEIF, ClinicalTrials.gov, NIH RePORTER, and USAspending | Corporate, clinical, grant, and contract context | These observations remain outside the score and check sizing |
+| Queue and checks | Applies editable workflow actions and fixed or risk-adjusted policy gates | Human-reviewable, immutable, non-binding check record | No funds are reserved, transferred, or promised |
+| Public outreach | Retains sourced professional channels and prepares editable approval messages | User-controlled draft and contact/response history | Proofline never sends automatically or guesses private contacts |
+| Saved trends | Stores explicit trend observations locally for reuse and comparison | Watchlist, later observations, and search reuse | Observed change is not a growth forecast |
+
+## Product tour
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/proofline-trend-intelligence.png" alt="Proofline Internet Trend Radar dashboard with retained signals, trend average, filters, and saved watches" />
+      <br /><strong>Internet Trend Radar.</strong> Real public-source signals, transparent non-investment trend scores, saved watches, filters, and GitHub-assisted builder discovery.
+    </td>
+    <td width="50%">
+      <img src="docs/images/proofline-investment-queue.png" alt="Proofline investment queue showing real seed-stage companies, provisional scores, coverage, uncertainty, and next actions" />
+      <br /><strong>Real-company Queue.</strong> Real seed-stage companies and founders retain scores, source counts, evidence gaps, uncertainty, and clearly labelled simulated workflow actions.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/proofline-human-check-workflow.png" alt="Proofline human check workflow showing independent policy gates and a non-binding 100,000 dollar check" />
+      <br /><strong>Human-controlled policy workflow.</strong> Every dimension, coverage, confidence, identity, contradiction, and compliance gate must pass before a named reviewer can record a non-binding check.
+    </td>
+    <td width="50%">
+      <img src="docs/images/proofline-team-activity.png" alt="Proofline Team Activity dashboard showing real startup facts and explicitly simulated colleague activity" />
+      <br /><strong>Team Activity.</strong> Real startup facts remain separate from explicitly simulated demo colleagues, actions, and allocations; genuine approvals are projected from immutable check records.
+    </td>
+  </tr>
+</table>
+
+## How Proofline scores an opportunity
+
+Proofline scores an evidence-backed opportunity—not founder worth. The fixed, versioned rubric rejects caller-supplied weights and keeps four substantive evidence families plus Evidence Quality visible as five separate dimensions.
+
+| Dimension | Composite weight | Criteria |
+|---|---:|---|
+| Founder execution evidence | 18% | Delivery record, learning velocity, evidence discipline, domain execution |
+| Market / problem pull | 25% | Problem severity, buyer urgency, timing, incumbent pain |
+| Product / technical fit | 23% | Feasibility, differentiation, independent validation, academic alignment |
+| Evidence quality | 14% | Source quality, independence, and substantive coverage |
+| Revenue plausibility | 20% | Willingness to pay, unit economics, sales path, market scale |
+
+```mermaid
+pie showData
+  title Opportunity score composite weights
+  "Market / problem pull" : 25
+  "Product / technical fit" : 23
+  "Revenue plausibility" : 20
+  "Founder execution evidence" : 18
+  "Evidence quality" : 14
+```
+
+_These weights form the ranking composite. Check eligibility separately applies noncompensatory floors to every dimension._
+
+### Evidence-to-score pipeline
+
+```mermaid
+flowchart LR
+  A["Public web, authorized plan,<br/>founder and company links"] --> B["Normalize and deduplicate<br/>canonical URLs · source roles"]
+  B --> C["Source quality<br/>reliability · directness · entity match · freshness"]
+  C --> D["Independence gate<br/>coherent source-host groups"]
+  D --> E["16 substantive criteria"]
+  E --> F["Five weighted dimensions"]
+  F --> G["Coverage and confidence"]
+  F --> H["Opposing evidence and contradictions"]
+  G --> I["Opportunity score<br/>plus uncertainty band"]
+  H --> I
+  I --> J["Separate policy gates"]
+  J -->|Pass| K["Named human review"]
+  J -->|Fail| L["Request more evidence"]
+  K --> M["Immutable non-binding check"]
+```
+
+Key scoring behavior:
+
+- Source quality starts with `45% reliability + 25% directness + 20% entity match + 10% freshness`, then applies review-state, source-type, staleness, upload, and retraction caps.
+- Automated live criteria normally require at least two topically coherent source-host groups. Reviewed scoring additionally requires reviewed independent evidence.
+- Only the strongest source in an independence group receives full credit; additional independent groups have diminishing returns.
+- Supporting evidence raises a criterion from neutral, opposing evidence lowers both its score and confidence, and open contradictions add an explicit penalty.
+- Missing criteria pull a dimension toward neutral while lowering coverage; they are not silently converted into negative claims.
+- Provisional Opportunity scores are capped at 74 and always carry at least ±18 uncertainty.
+- Coverage is criterion-weighted across the rubric, not a simple source count.
+
+The uncertainty band is explicit:
+
+```text
+uncertainty points =
+  8
+  + 27 × (1 − coverage)
+  + 15 × (1 − confidence)
+  + 8 × contradiction pressure
+```
+
+The result is constrained to ±8–40 points. See [Scoring methodology](docs/SCORING.md) for the full rubric, source caps, claim formula, contradiction handling, and implementation references.
+
+## From score to human decision
+
+There is no single score threshold that approves a check. Proofline reruns every gate against the reviewed evidence pack:
+
+| Required gate | Floor or state |
+|---|---:|
+| Evidence mode | `REVIEWED` |
+| Entity identity and thesis match | Confirmed |
+| Compliance hold / open material contradiction | None |
+| Founder execution | ≥55 |
+| Market / problem pull | ≥55 |
+| Product / technical fit | ≥55 |
+| Revenue plausibility | ≥50 |
+| Evidence quality | ≥40 |
+| Overall evidence coverage | ≥70% |
+| Overall source confidence | ≥50% |
+| Maximum uncertainty | ≤25 points |
+
+```mermaid
+flowchart TD
+  A["Reviewed evidence pack"] --> B{"Every policy gate clear?"}
+  B -->|No| C["No check calculated<br/>missingness stays unknown"]
+  B -->|Yes| D{"Sizing mode"}
+  D -->|Fixed| E["Configured fixed amount<br/>default USD 100K"]
+  D -->|Risk-adjusted| F["Market 25% · Product 40% · Revenue 35% risk index"]
+  E --> G["Named reviewer · rationale · acknowledgements"]
+  F --> G
+  G --> H["Immutable non-binding record"]
+  H --> I["User-controlled outreach draft"]
+  I --> J["No automatic send or transfer"]
+```
+
+The Opportunity score supports ranking; the policy engine controls eligibility. A strong dimension can raise the composite, but it cannot compensate for a weak or unknown gated dimension.
 
 ## Architecture
 
@@ -111,18 +246,6 @@ Do not put secrets in browser code, screenshots, issues, or commits. `.env` and 
 
 The deterministic demo uses nine reviewed public sources and produces a 62.1 Opportunity score, 85.1% criterion coverage, ±18 uncertainty, and a fixed-policy non-binding USD 100,000 result eligible for human review.
 
-## Scoring boundary
-
-Proofline calculates five cited dimensions:
-
-1. Founder Execution
-2. Market Pull
-3. Product / Technical Fit
-4. Evidence Quality
-5. Revenue Plausibility
-
-Source role, review status, topical fit, independence, freshness, contradictions, and missing criteria affect the evidence model. Popularity, prestige, protected traits, and unsupported claims are excluded. Official open-data observations sit beside the score and have no hidden scoring or check-sizing authority.
-
 ## Privacy and security
 
 - Provider keys remain server-side.
@@ -159,7 +282,7 @@ Proofline/
 ├── tests/                  deterministic unit and integration tests
 ├── scripts/                demo PDF generation and inspection helpers
 ├── output/pdf/             packaged public-source Emovo demo plan
-├── docs/                   architecture and one-minute PowerPoint
+├── docs/                   architecture, scoring methodology, screenshots, and PowerPoint
 ├── server.mjs              loopback HTTP API and provider boundary
 ├── index.html              application entry point
 └── package.json            commands, runtime requirements, dependencies
