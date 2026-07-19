@@ -4,7 +4,7 @@
 
 [![Node.js 20.16+](https://img.shields.io/badge/Node.js-20.16%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Tests: 216 passing](https://img.shields.io/badge/tests-216%20passing-2ea44f)](#validation)
-[![License: All rights reserved](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey)](#license)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Proofline turns public startup signals into an auditable evidence workflow. It can discover real companies and founders, investigate a submitted company or business plan, compare the opportunity with incumbent problems and academic research, and produce a cited score with explicit coverage and uncertainty.
 
@@ -173,4 +173,4 @@ Proofline is research software. It does not provide legal, financial, medical, o
 
 ## License
 
-Copyright © 2026 Mario. All rights reserved. The repository is available for evaluation and demonstration; no permission to copy, modify, distribute, sublicense, or commercially use the code is granted without written authorization. See [LICENSE](LICENSE).
+Proofline is available under the [MIT License](LICENSE). Copyright © 2026 Mario.
