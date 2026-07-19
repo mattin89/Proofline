@@ -7,11 +7,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jeske-dev/Proofline.git"
+    "url": "git+https://github.com/mattin89/Proofline.git"
   },
-  "homepage": "https://github.com/Jeske-dev/Proofline#readme",
+  "homepage": "https://github.com/mattin89/Proofline#readme",
   "bugs": {
-    "url": "https://github.com/Jeske-dev/Proofline/issues"
+    "url": "https://github.com/mattin89/Proofline/issues"
   },
   "keywords": [
     "venture-capital",

@@ -73,7 +73,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow and trust boundaries.
 ### Run locally
 
 ```bash
-git clone https://github.com/Jeske-dev/Proofline.git
+git clone https://github.com/mattin89/Proofline.git
 cd Proofline
 corepack enable
 pnpm install --frozen-lockfile
