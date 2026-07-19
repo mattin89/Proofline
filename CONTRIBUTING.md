@@ -30,4 +30,4 @@ Keep changes evidence-first:
 
 ## Licensing
 
-The project is currently all rights reserved. Submission of a contribution does not change the repository's license or grant broader reuse rights unless a separate written agreement says otherwise.
+By submitting a contribution, you agree that it may be distributed under the project's [MIT License](LICENSE).
