@@ -1,0 +1,37 @@
+{
+  "name": "proofline",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Live startup discovery and auditable venture evidence with human-controlled decisions.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jeske-dev/Proofline.git"
+  },
+  "homepage": "https://github.com/Jeske-dev/Proofline#readme",
+  "bugs": {
+    "url": "https://github.com/Jeske-dev/Proofline/issues"
+  },
+  "keywords": [
+    "venture-capital",
+    "startup-research",
+    "evidence-scoring",
+    "tavily",
+    "exa",
+    "open-data"
+  ],
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test tests/domain.test.mjs tests/live-domain.test.mjs tests/live-workspace.test.mjs tests/live-queue.test.mjs tests/queue-workflow-v2.test.mjs tests/live-trends-ui.test.mjs tests/trend-dashboard-selection-v2.test.mjs tests/trends-snapshot-v1.test.mjs tests/trend-company-discovery-v1.test.mjs tests/saved-trends-v1.test.mjs tests/open-data-signals-v1.test.mjs tests/open-data-providers-v1.test.mjs tests/open-data-signal-adapter-v1.test.mjs tests/open-data-saved-trends-ui-v1.test.mjs tests/open-data-server-v1.test.mjs tests/sourced-pipeline.test.mjs tests/team-activity-v2.test.mjs tests/team-activity-v3.test.mjs tests/contact-outreach-ui-v1.test.mjs tests/live-comparator-role.test.mjs tests/investment-policy.test.mjs tests/exa-crossvalidation.test.mjs tests/public-contacts-v1.test.mjs tests/check-outreach-v1.test.mjs tests/server.test.mjs tests/server-live.test.mjs",
+    "check": "node --check server.mjs && node --check src/domain.mjs && node --check src/live-domain.mjs && node --check src/live-workspace.mjs && node --check src/live-queue.mjs && node --check src/investment-policy.mjs && node --check src/demo-data.mjs && node --check src/demo-data-v2.mjs && node --check src/sourced-pipeline-v1.mjs && node --check src/sourced-pipeline-v2.mjs && node --check src/trends-snapshot-v1.mjs && node --check src/trend-company-discovery-v1.mjs && node --check src/saved-trends-v1.mjs && node --check src/open-data-signals-v1.mjs && node --check src/open-data-providers-v1.mjs && node --check src/open-data-signal-adapter-v1.mjs && node --check src/team-activity-v2.mjs && node --check src/team-activity-v3.mjs && node --check src/team-activity-v4.mjs && node --check src/public-contacts-v1.mjs && node --check src/check-outreach-v1.mjs && node --check src/seed.mjs && node --check src/app.mjs"
+  },
+  "engines": {
+    "node": ">=20.16"
+  },
+  "dependencies": {
+    "mammoth": "1.12.0",
+    "pdf-parse": "2.4.5"
+  }
+}
