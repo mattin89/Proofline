@@ -14,7 +14,7 @@ The score is a ranking aid—not a probability of success, valuation, revenue fo
 
 ![Proofline reviewed opportunity screen showing score, coverage, uncertainty, five dimensions, and comparison panels](docs/images/proofline-scoring-evidence.png)
 
-_A reviewed real-source demonstration keeps the 62.1 Opportunity score, 85.1% coverage, ±18 uncertainty, all five dimensions, and comparator evidence visible together. It is a screening result—not a prediction or recommendation._
+_A reviewed real-source demonstration keeps the 62.1 Opportunity score, 85.1% weighted evidence coverage, ±18 uncertainty, all five dimensions, and comparator evidence visible together. It is a screening result—not a prediction or recommendation._
 
 ## Why Proofline matters
 
@@ -46,28 +46,29 @@ Early-stage evidence is fragmented across company websites, founder profiles, te
 
 ## Product tour
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="docs/images/proofline-trend-intelligence.png" alt="Proofline Internet Trend Radar dashboard with retained signals, trend average, filters, and saved watches" />
-      <br /><strong>Internet Trend Radar.</strong> Real public-source signals, transparent non-investment trend scores, saved watches, filters, and GitHub-assisted builder discovery.
-    </td>
-    <td width="50%">
-      <img src="docs/images/proofline-investment-queue.png" alt="Proofline investment queue showing real seed-stage companies, provisional scores, coverage, uncertainty, and next actions" />
-      <br /><strong>Real-company Queue.</strong> Real seed-stage companies and founders retain scores, source counts, evidence gaps, uncertainty, and clearly labelled simulated workflow actions.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="docs/images/proofline-human-check-workflow.png" alt="Proofline human check workflow showing independent policy gates and a non-binding 100,000 dollar check" />
-      <br /><strong>Human-controlled policy workflow.</strong> Every dimension, coverage, confidence, identity, contradiction, and compliance gate must pass before a named reviewer can record a non-binding check.
-    </td>
-    <td width="50%">
-      <img src="docs/images/proofline-team-activity.png" alt="Proofline Team Activity dashboard showing real startup facts and explicitly simulated colleague activity" />
-      <br /><strong>Team Activity.</strong> Real startup facts remain separate from explicitly simulated demo colleagues, actions, and allocations; genuine approvals are projected from immutable check records.
-    </td>
-  </tr>
-</table>
+### Internet Trend Radar
+
+[![Proofline Internet Trend Radar dashboard with retained signals, trend average, filters, and saved watches](docs/images/proofline-trend-intelligence.png)](docs/images/proofline-trend-intelligence.png)
+
+Real public-source signals, transparent non-investment trend scores, saved watches, filters, and GitHub-assisted builder discovery.
+
+### Real-company Queue
+
+[![Proofline investment queue showing real seed-stage companies, provisional scores, coverage, uncertainty, and next actions](docs/images/proofline-investment-queue.png)](docs/images/proofline-investment-queue.png)
+
+Real seed-stage companies and founders retain scores, source counts, evidence gaps, uncertainty, and clearly labelled simulated workflow actions.
+
+### Human-controlled policy workflow
+
+[![Proofline human check workflow showing independent policy gates and a non-binding 100,000 dollar check](docs/images/proofline-human-check-workflow.png)](docs/images/proofline-human-check-workflow.png)
+
+Every dimension, coverage, confidence, identity, contradiction, and compliance gate must pass before a named reviewer can record a non-binding check. The screenshot shows a local demonstration state; the record remains non-binding.
+
+### Team Activity
+
+[![Proofline Team Activity dashboard showing real startup facts and explicitly simulated colleague activity](docs/images/proofline-team-activity.png)](docs/images/proofline-team-activity.png)
+
+Real startup facts remain separate from explicitly simulated demo colleagues, actions, and allocations; genuine approvals are projected from immutable check records.
 
 ## How Proofline scores an opportunity
 
@@ -117,7 +118,7 @@ Key scoring behavior:
 - Source quality starts with `45% reliability + 25% directness + 20% entity match + 10% freshness`, then applies review-state, source-type, staleness, upload, and retraction caps.
 - Automated live criteria normally require at least two topically coherent source-host groups. Reviewed scoring additionally requires reviewed independent evidence.
 - Only the strongest source in an independence group receives full credit; additional independent groups have diminishing returns.
-- Supporting evidence raises a criterion from neutral, opposing evidence lowers both its score and confidence, and open contradictions add an explicit penalty.
+- Supporting evidence moves a criterion from neutral toward the cited assessment; opposing evidence lowers score and confidence, and open contradictions add an explicit penalty.
 - Missing criteria pull a dimension toward neutral while lowering coverage; they are not silently converted into negative claims.
 - Provisional Opportunity scores are capped at 74 and always carry at least ±18 uncertainty.
 - Coverage is criterion-weighted across the rubric, not a simple source count.
@@ -244,7 +245,7 @@ Do not put secrets in browser code, screenshots, issues, or commits. `.env` and 
 5. Complete the named-reviewer rationale and required acknowledgements to record the non-binding check.
 6. Refresh the page. Emovo disappears from Queue while the assessment remains ready to replay.
 
-The deterministic demo uses nine reviewed public sources and produces a 62.1 Opportunity score, 85.1% criterion coverage, ±18 uncertainty, and a fixed-policy non-binding USD 100,000 result eligible for human review.
+The deterministic demo uses nine reviewed evidence records across eight unique public-source URLs and produces a 62.1 Opportunity score, 85.1% weighted evidence coverage (15/16 substantive criteria), ±18 uncertainty, and a fixed-policy non-binding USD 100,000 result eligible for human review.
 
 ## Privacy and security
 

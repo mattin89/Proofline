@@ -210,7 +210,7 @@ Implementation: [`src/investment-policy.mjs`](../src/investment-policy.mjs) and 
 
 ## 12. Repeatable public-source demonstration
 
-The packaged Emovo Care demonstration uses nine reviewed public sources. It produces:
+The packaged Emovo Care demonstration uses nine reviewed evidence records across eight unique public-source URLs. It produces:
 
 - Opportunity score: 62.1/100;
 - weighted evidence coverage: 85.1%;
