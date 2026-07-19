@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+coverage/
+tmp/
+.cache/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+tests/fixtures/rendered-*/
+docs/*-preview/
+docs/*.pptx.inspect.ndjson
