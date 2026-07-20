@@ -3,14 +3,17 @@
 > Real startup discovery, cited opportunity scoring, and human-controlled investment workflows.
 
 [![Node.js 20.16+](https://img.shields.io/badge/Node.js-20.16%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Tests: 216 passing](https://img.shields.io/badge/tests-216%20passing-2ea44f)](#validation)
+[![Tests: 222 passing](https://img.shields.io/badge/tests-222%20passing-2ea44f)](#validation)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20Proofline-6C5CE7)](https://proofline-s1cj.onrender.com/)
+
+_The public demo runs on Render's free tier; its first load after inactivity may take a moment._
 
 Proofline turns public startup signals into an auditable evidence workflow. It can discover real companies and founders, investigate a submitted company or business plan, compare the opportunity with incumbent problems and academic research, and produce a cited score with explicit coverage and uncertainty.
 
 The score is a ranking aid—not a probability of success, valuation, revenue forecast, or investment recommendation. Check outputs are non-binding and never reserve funds, authorize a transfer, or send outreach automatically.
 
-[View the one-minute PowerPoint overview](docs/Proofline_One_Minute_Overview_v1.pptx)
+**[Open the live Proofline demo](https://proofline-s1cj.onrender.com/)** · [View the latest one-minute architecture and AI presentation](docs/Proofline_Architecture_AI_Overview_v5.pptx)
 
 ![Proofline reviewed opportunity screen showing score, coverage, uncertainty, five dimensions, and comparison panels](docs/images/proofline-scoring-evidence.png)
 
@@ -240,6 +243,8 @@ Do not put secrets in browser code, screenshots, issues, or commits. `.env` and 
 
 The repository includes a [`render.yaml`](render.yaml) Blueprint for one free Frankfurt web service. It pins Node 24, installs the pnpm lockfile, uses `/api/health`, enables exact-origin hosted mode, and caps process-lifetime public-demo research at 200 bounded units.
 
+Current public demo: [https://proofline-s1cj.onrender.com/](https://proofline-s1cj.onrender.com/)
+
 1. In Render, create a new **Blueprint** from this repository.
 2. Enter `TAVILY_API` and, optionally, `EXA_API` and a least-privilege `GITHUB_TOKEN` when Render prompts for the `sync: false` values.
 3. Deploy and open the generated `https://…onrender.com` URL.
@@ -251,12 +256,13 @@ The public demo receives uploaded files in its ephemeral server memory. It does 
 
 ## One-minute demo
 
-1. Open **Live research → Analyze a startup**.
-2. Click **Load frozen $100K result**. This uses no Tavily or Exa credits.
-3. Review the Emovo Care score, citations, coverage, uncertainty, contacts, and official-data context.
-4. Click **Add to Queue**, open the case, and set **Policy screen eligible**.
-5. Complete the named-reviewer rationale and required acknowledgements to record the non-binding check.
-6. Refresh the page. Emovo disappears from Queue while the assessment remains ready to replay.
+1. Open the [live demo](https://proofline-s1cj.onrender.com/). Proofline starts on **Live research → Internet Trends**.
+2. Review the real public-source trend radar, then switch to **Analyze a startup**.
+3. Click **Load frozen $100K result**. This uses no Tavily or Exa credits.
+4. Review the Emovo Care score, citations, coverage, uncertainty, contacts, and official-data context.
+5. Click **Add to Queue**, open the case, and set **Policy screen eligible**.
+6. Complete the named-reviewer rationale and required acknowledgements to record the non-binding check.
+7. Refresh the page. Emovo disappears from Queue while the assessment remains ready to replay.
 
 The deterministic demo uses nine reviewed evidence records across eight unique public-source URLs and produces a 62.1 Opportunity score, 85.1% weighted evidence coverage (15/16 substantive criteria), ±18 uncertainty, and a fixed-policy non-binding USD 100,000 result eligible for human review.
 
@@ -283,7 +289,7 @@ pnpm test
 Latest verified release result with Node 24.14.0:
 
 - 26 test files
-- 216 tests passed
+- 222 tests passed
 - 0 failures, skips, cancellations, or todo items
 
 The suite covers evidence independence, conservative scoring, provider failures, SSRF and upload guards, open-data exact matching, policy gates, Queue workflows, contacts, outreach, trend reuse, and the repeatable Emovo demo.
