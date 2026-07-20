@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+. "$repo_root/.githooks/_identity-guard.sh"
+
+proofline_check_current_identity
+
+remote_name=${1:-origin}
+zero_sha='0000000000000000000000000000000000000000'
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$local_sha" = "$zero_sha" ]; then
+    continue
+  fi
+
+  if [ "$remote_sha" = "$zero_sha" ]; then
+    outgoing_commits=$(git rev-list "$local_sha" --not --remotes="$remote_name")
+  else
+    outgoing_commits=$(git rev-list "$remote_sha..$local_sha")
+  fi
+
+  for commit in $outgoing_commits; do
+    proofline_check_commit "$commit"
+  done
+done

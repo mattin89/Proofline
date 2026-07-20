@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+. "$repo_root/.githooks/_identity-guard.sh"
+
+proofline_check_current_identity
+proofline_check_message_stream < "$1"
