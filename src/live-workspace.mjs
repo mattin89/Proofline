@@ -30,7 +30,7 @@ const ACCEPTED_DOCUMENTS = ".pdf,.docx,.txt,.md,.html,.json,.csv";
 
 export function createLiveWorkspaceState() {
   return {
-    mode: "investigate",
+    mode: "trends",
     loading: false,
     stage: null,
     error: null,

@@ -107,14 +107,20 @@ const thesis = {
 
 const tavily = { configured: true, exaConfigured: true };
 
-test("Emovo Care values are the editable investigation defaults without a prefill box", () => {
+test("a fresh session opens on Internet trends while preserving editable Emovo investigation defaults", () => {
   const live = createLiveWorkspaceState();
-  assert.equal(live.mode, "investigate");
+  assert.equal(live.mode, "trends");
   assert.equal(live.intake.companyName, EMOVO_DEMO_TEMPLATE.companyName);
   assert.equal(live.intake.founderNames, EMOVO_DEMO_TEMPLATE.founderNames);
   assert.equal(live.intake.links, EMOVO_DEMO_TEMPLATE.links);
   assert.equal(live.intake.context, EMOVO_DEMO_TEMPLATE.context);
 
+  const initialHtml = renderLiveWorkspace({ live, thesis, tavily, investmentPolicy: DEFAULT_CHECK_POLICY });
+  assert.match(initialHtml, /class="live-mode-button active" data-live-mode="trends"/);
+  assert.match(initialHtml, /id="trends-dashboard-title"/);
+  assert.doesNotMatch(initialHtml, /id="live-investigation-form"/);
+
+  live.mode = "investigate";
   const html = renderLiveWorkspace({ live, thesis, tavily, investmentPolicy: DEFAULT_CHECK_POLICY });
   assert.match(html, /value="Emovo Care"/);
   assert.match(html, /Real-data demo defaults/);
@@ -123,6 +129,7 @@ test("Emovo Care values are the editable investigation defaults without a prefil
 
 test("hosted demo clearly warns that uploads reach ephemeral server memory", () => {
   const live = createLiveWorkspaceState();
+  live.mode = "investigate";
   live.capabilities = {
     deployment: { mode: "HOSTED_PUBLIC_DEMO", uploadProcessing: "HOSTED_EPHEMERAL_SERVER" },
     uploads: { maxBytes: 8 * 1024 * 1024, acceptedExtensions: [".pdf", ".docx", ".txt"] }

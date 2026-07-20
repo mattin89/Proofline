@@ -11,7 +11,7 @@ import {
   bindLiveWorkspace,
   createDemoReadyLiveWorkspaceState,
   renderLiveWorkspace
-} from "./live-workspace.mjs?v=20260719.5";
+} from "./live-workspace.mjs?v=20260720.2";
 import {
   DEFAULT_CHECK_POLICY,
   calculatePolicyCheck,
