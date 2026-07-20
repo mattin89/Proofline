@@ -46,6 +46,28 @@ test("static app is served with the security boundary intact", async () => {
   assert.match(html, /Proofline v3 — Cross-validated venture evidence/);
 });
 
+test("health check is minimal and does not disclose provider configuration", async () => {
+  const response = await fetch(`${baseUrl}/api/health`);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(body, { status: "ok" });
+});
+
+test("only explicit browser assets are publicly served", async () => {
+  for (const path of ["/src/app.mjs", "/styles.css", "/live-styles.css", "/output/pdf/emovo-care-public-source-business-plan_v1.pdf"]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 200, `${path} should be public`);
+    await response.arrayBuffer();
+  }
+
+  for (const path of ["/.env", "/.git/config", "/server.mjs", "/package.json", "/tests/server.test.mjs", "/docs/ARCHITECTURE.md"]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    assert.equal(response.status, 404, `${path} must not be public`);
+    await response.arrayBuffer();
+  }
+});
+
 test("unsupported mutation routes are rejected without reaching Tavily", async () => {
   const response = await fetch(`${baseUrl}/api/config`, { method: "POST" });
   const body = await response.json();

@@ -121,6 +121,19 @@ test("Emovo Care values are the editable investigation defaults without a prefil
   assert.doesNotMatch(html, /data-load-emovo-template|Prefill live search|verified-demo-card/);
 });
 
+test("hosted demo clearly warns that uploads reach ephemeral server memory", () => {
+  const live = createLiveWorkspaceState();
+  live.capabilities = {
+    deployment: { mode: "HOSTED_PUBLIC_DEMO", uploadProcessing: "HOSTED_EPHEMERAL_SERVER" },
+    uploads: { maxBytes: 8 * 1024 * 1024, acceptedExtensions: [".pdf", ".docx", ".txt"] }
+  };
+
+  const html = renderLiveWorkspace({ live, thesis, tavily, investmentPolicy: DEFAULT_CHECK_POLICY });
+  assert.match(html, /Do not upload confidential plans to this public demo/);
+  assert.match(html, /uploaded to Proofline's ephemeral Render process/);
+  assert.match(html, /Public-demo files are parsed in ephemeral server memory/);
+});
+
 test("a fresh demo session keeps Emovo available but out of the Queue", () => {
   const live = createDemoReadyLiveWorkspaceState();
   assert.equal(live.assessments.length, 1);

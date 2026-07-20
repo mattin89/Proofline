@@ -73,6 +73,31 @@ async function rawPost(baseUrl, path, body, headers = {}) {
   });
 }
 
+async function rawGet(baseUrl, path, headers = {}) {
+  const target = new URL(path, baseUrl);
+  return new Promise((resolve, reject) => {
+    const request = httpRequest({
+      hostname: target.hostname,
+      port: target.port,
+      path: target.pathname,
+      method: "GET",
+      headers
+    }, (response) => {
+      const chunks = [];
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => {
+        try {
+          resolve({ status: response.statusCode, body: JSON.parse(Buffer.concat(chunks).toString("utf8")) });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+    request.on("error", reject);
+    request.end();
+  });
+}
+
 function emptySearch(overrides = {}) {
   return {
     query: "mocked query",
@@ -662,6 +687,102 @@ test("foreign Host and Origin values are rejected before provider or parser work
     assert.equal(sameOrigin.status, 200);
     assert.equal(providerCalls, 1);
     assert.equal(parserCalls, 0);
+  });
+});
+
+test("hosted mode accepts only the exact HTTPS public host and origin", async () => {
+  let providerCalls = 0;
+  const publicOrigin = "https://proofline-demo.onrender.com";
+  await withServer({
+    publicDemo: true,
+    publicOrigin,
+    fetchImpl: async () => {
+      providerCalls += 1;
+      return jsonResponse(emptySearch());
+    }
+  }, async (baseUrl) => {
+    const defaultHost = await fetch(`${baseUrl}/api/capabilities`);
+    assert.equal(defaultHost.status, 403);
+
+    const capabilities = await rawGet(baseUrl, "/api/capabilities", {
+      Host: "proofline-demo.onrender.com",
+      Origin: publicOrigin
+    });
+    assert.equal(capabilities.status, 200);
+    assert.equal(capabilities.body.deployment.mode, "HOSTED_PUBLIC_DEMO");
+    assert.equal(capabilities.body.uploads.processingLocation, "HOSTED_EPHEMERAL_SERVER");
+    assert.equal(capabilities.body.uploads.persistedByServer, false);
+
+    for (const [host, origin] of [
+      ["proofline-demo.onrender.com.attacker.example", publicOrigin],
+      ["proofline-demo.onrender.com:443", publicOrigin],
+      ["proofline-demo.onrender.com", "http://proofline-demo.onrender.com"],
+      ["proofline-demo.onrender.com", `${publicOrigin}/path`]
+    ]) {
+      const rejected = await rawPost(baseUrl, "/api/research", { query: "valid hosted research query" }, { Host: host, Origin: origin });
+      assert.equal(rejected.status, 403, `${host} ${origin} must be rejected`);
+    }
+
+    const allowed = await rawPost(baseUrl, "/api/research", { query: "valid hosted research query" }, {
+      Host: "proofline-demo.onrender.com",
+      Origin: publicOrigin
+    });
+    assert.equal(allowed.status, 200);
+    assert.equal(providerCalls, 1);
+  });
+});
+
+test("hosted public-demo budget rejects new work before provider calls", async () => {
+  let providerCalls = 0;
+  const headers = { Host: "proofline-demo.onrender.com", Origin: "https://proofline-demo.onrender.com" };
+  await withServer({
+    publicDemo: true,
+    publicOrigin: "https://proofline-demo.onrender.com",
+    publicDemoMaxResearchUnits: 1,
+    fetchImpl: async () => {
+      providerCalls += 1;
+      return jsonResponse(emptySearch());
+    }
+  }, async (baseUrl) => {
+    const first = await rawPost(baseUrl, "/api/research", { query: "first valid hosted research query" }, headers);
+    assert.equal(first.status, 200);
+
+    const limited = await rawPost(baseUrl, "/api/research", { query: "second valid hosted research query" }, headers);
+    assert.equal(limited.status, 429);
+    assert.equal(limited.body.code, "PUBLIC_DEMO_BUDGET_EXHAUSTED");
+    assert.equal(providerCalls, 1);
+  });
+});
+
+test("hosted upload discloses its processing boundary and preserves parsed evidence when enrichment budget is exhausted", async () => {
+  let providerCalls = 0;
+  const headers = { Host: "proofline-demo.onrender.com", Origin: "https://proofline-demo.onrender.com" };
+  await withServer({
+    publicDemo: true,
+    publicOrigin: "https://proofline-demo.onrender.com",
+    publicDemoMaxResearchUnits: 1,
+    fetchImpl: async () => {
+      providerCalls += 1;
+      return jsonResponse(emptySearch());
+    }
+  }, async (baseUrl) => {
+    const result = await rawPost(baseUrl, "/api/documents/inspect", {
+      companyName: "Acme Robotics",
+      file: {
+        name: "authorized-plan.txt",
+        type: "text/plain",
+        encoding: "utf8",
+        content: "Authorized founder-provided business plan content with sufficient readable text for hosted boundary testing."
+      }
+    }, headers);
+
+    assert.equal(result.status, 200);
+    assert.match(result.body.summary, /ephemeral hosted server/);
+    assert.equal(result.body.privacy.documentProcessing, "HOSTED_EPHEMERAL_SERVER");
+    assert.equal(result.body.privacy.persistedByServer, false);
+    assert.equal(result.body.webResearch.warning.code, "PUBLIC_DEMO_BUDGET_EXHAUSTED");
+    assert.equal(result.body.evidence.length, 1);
+    assert.equal(providerCalls, 0);
   });
 });
 

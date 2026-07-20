@@ -265,7 +265,7 @@ export function renderLiveWorkspace({ live, thesis, tavily, investmentPolicy }) 
     </section>
 
     ${live.error ? `<div class="live-error" role="alert"><strong>Research could not complete</strong><span>${esc(live.error)}</span></div>` : ""}
-    ${live.loading ? renderResearchProgress(live.stage) : ""}
+    ${live.loading ? renderResearchProgress(live.stage, live.capabilities) : ""}
 
     ${live.mode === "trends" || live.mode === "saved-trends"
       ? live.mode === "trends" ? renderTrendsDashboard(live, tavily) : renderSavedTrendsDashboard(live, tavily)
@@ -991,9 +991,10 @@ export function renderSavedTrendsDashboard(live, tavily) {
   </section>`;
 }
 
-function renderResearchProgress(stage) {
+function renderResearchProgress(stage, capabilities = null) {
+  const hostedUpload = capabilities?.deployment?.uploadProcessing === "HOSTED_EPHEMERAL_SERVER";
   const labels = {
-    document: "Parsing the authorized upload locally",
+    document: hostedUpload ? "Parsing the authorized upload on the ephemeral hosted server" : "Parsing the authorized upload locally",
     entity: "Running the bounded startup, market, and research queries",
     score: "Normalizing sources and calculating the independent axes",
     "open-data": "Checking four official datasets for exact entity matches"
@@ -1045,6 +1046,7 @@ function renderCandidate(candidate) {
 function renderInvestigationForm(live, tavily) {
   const intake = live.intake;
   const maxBytes = live.capabilities?.uploads?.maxBytes || DEFAULT_MAX_DOCUMENT_BYTES;
+  const hostedUpload = live.capabilities?.deployment?.uploadProcessing === "HOSTED_EPHEMERAL_SERVER";
   return `<form class="surface live-form" id="live-investigation-form">
     <div class="surface-heading investigation-heading"><div><p class="eyebrow">Known startup research</p><h2>Build a sourced opportunity assessment</h2><p>Add a company name, public links, or an authorized business plan. The form starts with the real Emovo Care demonstration inputs, which you can edit or replace directly.</p></div><div class="investigation-heading-actions">${pill(tavily.exaConfigured ? "Tavily credits + optional Exa USD" : "≈ 1–4 Tavily credits", "neutral")}<button class="button button-small" data-run-emovo-demo type="button">Load frozen $100K result</button><a class="button button-small button-quiet" href="/output/pdf/emovo-care-public-source-business-plan_v1.pdf" target="_blank" rel="noreferrer">Demo PDF</a></div></div>
     <div class="live-form-grid">
@@ -1052,12 +1054,12 @@ function renderInvestigationForm(live, tavily) {
       <label class="field"><span>Founder names · optional</span><input name="founderNames" value="${esc(intake.founderNames)}" placeholder="Comma separated" /></label>
       <label class="field field-wide"><span>Website, LinkedIn, or public social links</span><textarea name="links" rows="3" placeholder="One public URL per line. Do not paste credentials.">${esc(intake.links)}</textarea><small>Proofline asks Tavily to inspect public pages. Login walls are reported as not accessed.</small></label>
       <label class="field field-wide"><span>Problem, buyer, and technical context · recommended</span><textarea name="context" rows="3" placeholder="Describe the buyer's operational problem and the technical mechanism to compare. This text guides identity-free incumbent and research searches.">${esc(intake.context)}</textarea><small>Without enough comparison context, Proofline runs entity research only and leaves comparator coverage unknown.</small></label>
-      <label class="upload-field field-wide"><span>Business plan · optional</span><input id="business-plan-file" name="businessPlan" type="file" accept="${ACCEPTED_DOCUMENTS}" /><strong>PDF, DOCX, TXT, MD, HTML, JSON, or CSV</strong><small>Maximum ${Math.round(maxBytes / 1024 / 1024)} MiB. Analyze only documents you are authorized to use.</small></label>
+      <label class="upload-field field-wide"><span>Business plan · optional</span><input id="business-plan-file" name="businessPlan" type="file" accept="${ACCEPTED_DOCUMENTS}" /><strong>PDF, DOCX, TXT, MD, HTML, JSON, or CSV</strong><small>Maximum ${Math.round(maxBytes / 1024 / 1024)} MiB. Analyze only documents you are authorized to use.${hostedUpload ? " Do not upload confidential plans to this public demo." : ""}</small></label>
       <label class="checkbox-row field-wide"><input name="allowPlanKeywordsForWebResearch" type="checkbox" ${intake.allowPlanKeywordsForWebResearch ? "checked" : ""}/><span>Allow up to eight sanitized plan keywords to guide web searches. The full document is never sent to Tavily.</span></label>
       <label class="checkbox-row field-wide"><input name="crossValidateWithExa" type="checkbox" ${intake.crossValidateWithExa ? "checked" : ""} ${!tavily.exaConfigured ? "disabled" : ""}/><span>Cross-check the same bounded query plan with Exa${tavily.exaConfigured ? " (up to about $0.021 for three searches)" : " (add EXA_API to enable)"}. Provider overlap is retrieval corroboration, not a second independent source.</span></label>
     </div>
     <div class="default-intake-note"><strong>Real-data demo defaults</strong><span>Emovo Care's company, founder, public-link, and market context values are already loaded. The frozen result is a separate reviewed snapshot; a live run uses current provider evidence.</span></div>
-    <div class="plan-boundary"><strong>Document boundary</strong><p>The plan is founder-provided, self-reported evidence—not independent validation. Proofline returns only a short excerpt and never returns or persists the full extracted text. Exa and Tavily receive only the bounded search query, never the full document.</p></div>
+    <div class="plan-boundary"><strong>${hostedUpload ? "Public demo document boundary" : "Document boundary"}</strong><p>${hostedUpload ? "The selected file is uploaded to Proofline's ephemeral Render process for parsing and is not persisted by the server. Use the supplied demo PDF; do not submit confidential material. " : ""}The plan is founder-provided, self-reported evidence—not independent validation. Proofline returns only a short excerpt and never returns or persists the full extracted text. Exa and Tavily receive only the bounded search query, never the full document.</p></div>
     <div class="live-form-actions"><p>At least a name, public link, or document is required.</p><button class="button button-primary" type="submit" ${live.loading || (!tavily.configured && !live.capabilities?.uploads) ? "disabled" : ""}>${live.loading ? "Building evidence pack…" : "Research and calculate axes"}</button></div>
   </form>`;
 }
@@ -1074,7 +1076,8 @@ function renderSessionHistory(live) {
 
 function renderResearchBoundary(capabilities) {
   const uploads = capabilities?.uploads?.acceptedExtensions?.join(", ") || "PDF, DOCX, and text formats";
-  return `<article class="surface live-side-card boundary-card"><p class="eyebrow">Evidence boundary</p><h2>What these axes mean</h2><ul><li>Assess the opportunity and observable execution evidence—not personal worth.</li><li>Exclude protected traits, pedigree, followers, likes, and popularity.</li><li>Require at least two source-host groups before a criterion is covered; host diversity alone does not prove independence.</li><li>Corporate pain establishes context, not startup success.</li><li>Academic and technical work can support problem or mechanism alignment, not this product's efficacy or adoption.</li></ul><small>Uploads: ${esc(uploads)}. Server-side secret boundary; no arbitrary direct URL fetch.</small></article>`;
+  const hostedUpload = capabilities?.deployment?.uploadProcessing === "HOSTED_EPHEMERAL_SERVER";
+  return `<article class="surface live-side-card boundary-card"><p class="eyebrow">Evidence boundary</p><h2>What these axes mean</h2><ul><li>Assess the opportunity and observable execution evidence—not personal worth.</li><li>Exclude protected traits, pedigree, followers, likes, and popularity.</li><li>Require at least two source-host groups before a criterion is covered; host diversity alone does not prove independence.</li><li>Corporate pain establishes context, not startup success.</li><li>Academic and technical work can support problem or mechanism alignment, not this product's efficacy or adoption.</li></ul><small>Uploads: ${esc(uploads)}. ${hostedUpload ? "Public-demo files are parsed in ephemeral server memory; do not upload confidential plans. " : ""}Server-side secret boundary; no arbitrary direct URL fetch.</small></article>`;
 }
 
 function openDataFieldLabel(value) {
@@ -1815,6 +1818,7 @@ async function apiRequest(path, body) {
 function messageForError(error) {
   const code = error?.code;
   if (code === "UPSTREAM_RATE_LIMIT" || code === "LOCAL_RATE_LIMIT") return "The research quota or rate limit was reached. Wait briefly and retry; no negative evidence was recorded.";
+  if (code === "PUBLIC_DEMO_BUDGET_EXHAUSTED") return "The public demo's bounded live-research budget has been used. The frozen real-source Emovo workflow remains available without provider credits.";
   if (code === "INVALID_URL" || code === "PRIVATE_URL") return "One submitted URL is invalid or points to a private/local address. Use a public HTTP or HTTPS link.";
   if (code === "ENCRYPTED_DOCUMENT") return "The document is encrypted or password-protected. Export an unlocked copy and try again.";
   if (code === "DOCUMENT_PARSE_FAILED" || code === "NO_READABLE_TEXT") return "Proofline could not extract readable text from this file. Try a text-searchable PDF, DOCX, or TXT export.";

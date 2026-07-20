@@ -35,6 +35,7 @@ const DEFAULT_RATE_WINDOW_MS = 60_000;
 const DEFAULT_RATE_UNITS = 12;
 const DEFAULT_MAX_CONCURRENT = 2;
 const DEFAULT_PARSER_TIMEOUT_MS = 12_000;
+const DEFAULT_PUBLIC_DEMO_MAX_RESEARCH_UNITS = 200;
 const PACKAGED_DEMO_SHA256 = "02c244dbcc317f9f558623e072ec6debd8c54a377f0008171ea3f9e9869efec3";
 const PACKAGED_DEMO_ID = "DEMO-EMOVO-2026-07-19";
 const COMPARATOR_EXCLUDED_DOMAINS = Object.freeze([
@@ -186,6 +187,13 @@ const MIME_TYPES = {
   ".png": "image/png",
   ".ico": "image/x-icon"
 };
+const PUBLIC_STATIC_FILES = new Set([
+  "index.html",
+  "styles.css",
+  "live-styles.css",
+  "output/pdf/emovo-care-public-source-business-plan_v1.pdf"
+]);
+const PUBLIC_BROWSER_MODULE = /^src\/[a-z0-9-]+\.mjs$/;
 
 const STOP_WORDS = new Set(
   "about after again against also among because before being between business could does doing during each from further have having into itself more most other over same should startup such than that their theirs them then there these they this those through under very what when where which while will with would your product company market solution founder founders customers customer revenue technology platform service services using used based need needs problem problems confidential private secret password credential credentials account accounts address addresses email emails phone phones banking bank iban swift customername".split(" ")
@@ -438,6 +446,31 @@ function normalizedLoopbackAuthority(value) {
   return parsed.host.toLowerCase().replace(/\.$/, "");
 }
 
+function normalizedHostedOrigin(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  let parsed;
+  try {
+    parsed = new URL(value.trim());
+  } catch {
+    return null;
+  }
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username ||
+    parsed.password ||
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash
+  ) {
+    return null;
+  }
+  try {
+    return new URL(normalizePublicUrl(parsed.origin, "public application origin")).origin;
+  } catch {
+    return null;
+  }
+}
+
 function assertLocalRequestBoundary(request) {
   const authority = normalizedLoopbackAuthority(request.headers.host);
   if (!authority) {
@@ -454,6 +487,69 @@ function assertLocalRequestBoundary(request) {
   if (parsedOrigin.protocol !== "http:" || normalizedLoopbackAuthority(parsedOrigin.host) !== authority) {
     throw new HttpError(403, "Request origin is not allowed.", "FORBIDDEN_REQUEST_ORIGIN");
   }
+}
+
+function assertHostedRequestBoundary(request, publicOrigin) {
+  const expected = new URL(publicOrigin);
+  const host = typeof request.headers.host === "string" ? request.headers.host.trim().toLowerCase() : "";
+  if (!host || host !== expected.host.toLowerCase()) {
+    throw new HttpError(403, "Request host is not allowed.", "FORBIDDEN_REQUEST_ORIGIN");
+  }
+  const origin = request.headers.origin;
+  if (origin == null || origin === "") return;
+  let parsedOrigin;
+  try {
+    parsedOrigin = new URL(String(origin));
+  } catch {
+    throw new HttpError(403, "Request origin is not allowed.", "FORBIDDEN_REQUEST_ORIGIN");
+  }
+  if (
+    parsedOrigin.origin !== expected.origin ||
+    parsedOrigin.pathname !== "/" ||
+    parsedOrigin.search ||
+    parsedOrigin.hash ||
+    parsedOrigin.username ||
+    parsedOrigin.password
+  ) {
+    throw new HttpError(403, "Request origin is not allowed.", "FORBIDDEN_REQUEST_ORIGIN");
+  }
+}
+
+function positiveInteger(value, fallback) {
+  if (value == null || value === "") return fallback;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function deploymentSettings(options = {}) {
+  const renderHosted = process.env.RENDER === "true";
+  const publicDemo = options.publicDemo ?? (renderHosted || process.env.PROOFLINE_PUBLIC_DEMO === "true");
+  const originCandidate =
+    options.publicOrigin ??
+    process.env.PROOFLINE_PUBLIC_ORIGIN ??
+    process.env.RENDER_EXTERNAL_URL ??
+    (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : "");
+  const publicOrigin = publicDemo ? normalizedHostedOrigin(originCandidate) : null;
+  if (publicDemo && !publicOrigin) {
+    throw new Error("Hosted Proofline requires an exact HTTPS public origin via RENDER_EXTERNAL_URL or PROOFLINE_PUBLIC_ORIGIN.");
+  }
+  return {
+    mode: publicDemo ? "HOSTED_PUBLIC_DEMO" : "LOCAL_ONLY",
+    publicDemo,
+    publicOrigin,
+    bindHost: publicDemo ? "0.0.0.0" : "127.0.0.1",
+    maxResearchUnits: publicDemo
+      ? positiveInteger(
+        options.publicDemoMaxResearchUnits ?? process.env.PROOFLINE_PUBLIC_DEMO_MAX_RESEARCH_UNITS,
+        DEFAULT_PUBLIC_DEMO_MAX_RESEARCH_UNITS
+      )
+      : null
+  };
+}
+
+function assertRequestBoundary(request, deployment) {
+  if (deployment.publicDemo) assertHostedRequestBoundary(request, deployment.publicOrigin);
+  else assertLocalRequestBoundary(request);
 }
 
 export function normalizePublicUrl(value, label = "link") {
@@ -892,9 +988,11 @@ async function extractTavily(
 function createResearchGuard(options) {
   const buckets = new Map();
   let active = 0;
+  let totalUnits = 0;
   const rateUnits = options.rateUnits ?? DEFAULT_RATE_UNITS;
   const rateWindowMs = options.rateWindowMs ?? DEFAULT_RATE_WINDOW_MS;
   const maxConcurrent = options.maxConcurrent ?? DEFAULT_MAX_CONCURRENT;
+  const maxTotalUnits = positiveInteger(options.maxTotalUnits, null);
   const now = options.now;
   return {
     async run(clientId, units, task) {
@@ -915,13 +1013,28 @@ function createResearchGuard(options) {
         error.retryAfter = 2;
         throw error;
       }
+      if (maxTotalUnits != null && totalUnits + units > maxTotalUnits) {
+        throw new HttpError(
+          429,
+          "The public Proofline demo has reached its bounded research budget. The frozen evidence demo remains available.",
+          "PUBLIC_DEMO_BUDGET_EXHAUSTED"
+        );
+      }
       bucket.units += units;
+      totalUnits += units;
       active += 1;
       try {
         return await task();
       } finally {
         active -= 1;
       }
+    },
+    status() {
+      return {
+        maxTotalUnits,
+        usedTotalUnits: totalUnits,
+        remainingTotalUnits: maxTotalUnits == null ? null : Math.max(0, maxTotalUnits - totalUnits)
+      };
     }
   };
 }
@@ -1951,7 +2064,11 @@ function safeStaticPath(urlPath) {
   let decoded;
   try { decoded = decodeURIComponent(urlPath); }
   catch { return null; }
-  const cleanPath = decoded.replace(/^\/+/, "") || "index.html";
+  if (decoded.includes("\\") || decoded.includes("\0")) return null;
+  let cleanPath = decoded.replace(/^\/+/, "") || "index.html";
+  if (cleanPath.split("/").some((segment) => segment.startsWith("."))) return null;
+  if (!extname(cleanPath)) cleanPath = "index.html";
+  if (!PUBLIC_STATIC_FILES.has(cleanPath) && !PUBLIC_BROWSER_MODULE.test(cleanPath)) return null;
   const candidate = normalize(join(ROOT, cleanPath));
   const relation = relative(ROOT, candidate);
   if (relation.startsWith("..") || relation.includes(`..${process.platform === "win32" ? "\\" : "/"}`)) return null;
@@ -1961,11 +2078,8 @@ function safeStaticPath(urlPath) {
 function serveStatic(request, response, pathname) {
   let filePath = safeStaticPath(pathname);
   if (!filePath) {
-    sendJson(response, 400, { error: "Invalid path", code: "INVALID_PATH" });
+    sendJson(response, 404, { error: "Not found", code: "NOT_FOUND" });
     return;
-  }
-  if (!existsSync(filePath) || !statSync(filePath).isFile()) {
-    if (!extname(pathname)) filePath = join(ROOT, "index.html");
   }
   if (!existsSync(filePath) || !statSync(filePath).isFile()) {
     sendJson(response, 404, { error: "Not found", code: "NOT_FOUND" });
@@ -1986,6 +2100,7 @@ function serveStatic(request, response, pathname) {
 }
 
 function capabilityPayload(runtime) {
+  const researchBudget = runtime.guard.status();
   return {
     version: "3.0",
     liveResearchConfigured: Boolean(runtime.apiKey),
@@ -1998,6 +2113,12 @@ function capabilityPayload(runtime) {
       officialOpenData: OPEN_DATA_DATASET_CATALOG.map(({ id, label, coverage, access, documentationUrl }) => ({ id, label, coverage, access, documentationUrl }))
     },
     secretBoundary: "SERVER_ONLY",
+    deployment: {
+      mode: runtime.deployment.mode,
+      publicDemo: runtime.deployment.publicDemo,
+      uploadProcessing: runtime.deployment.publicDemo ? "HOSTED_EPHEMERAL_SERVER" : "LOCAL_MACHINE_SERVER",
+      publicOrigin: runtime.deployment.publicOrigin
+    },
     endpoints: {
       discovery: "/api/discover",
       trends: "/api/trends",
@@ -2013,7 +2134,9 @@ function capabilityPayload(runtime) {
       optionalParsers: { ".pdf": "pdf-parse", ".docx": "mammoth" },
       maxBytes: MAX_DOCUMENT_BYTES,
       parserTimeoutMs: runtime.parserTimeoutMs,
-      fullDocumentSentToResearchProvider: false
+      fullDocumentSentToResearchProvider: false,
+      persistedByServer: false,
+      processingLocation: runtime.deployment.publicDemo ? "HOSTED_EPHEMERAL_SERVER" : "LOCAL_MACHINE_SERVER"
     },
     guards: {
       arbitraryServerFetch: false,
@@ -2029,7 +2152,9 @@ function capabilityPayload(runtime) {
       maxLinks: MAX_LINKS,
       maxSearchQueries: MAX_SEARCH_QUERIES,
       maxConcurrentResearchJobs: runtime.maxConcurrent,
-      rateUnitsPerMinute: runtime.rateUnits
+      rateUnitsPerMinute: runtime.rateUnits,
+      publicDemoMaxResearchUnits: researchBudget.maxTotalUnits,
+      publicDemoRemainingResearchUnits: researchBudget.remainingTotalUnits
     },
     trust: {
       liveEvidenceStatus: "UNREVIEWED",
@@ -2041,6 +2166,7 @@ function capabilityPayload(runtime) {
 }
 
 export function createProoflineServer(options = {}) {
+  const deployment = deploymentSettings(options);
   const runtime = {
     apiKey: options.tavilyKey ?? defaultTavilyKey,
     exaKey: options.exaKey ?? defaultExaKey,
@@ -2051,23 +2177,31 @@ export function createProoflineServer(options = {}) {
     maxConcurrent: options.maxConcurrent ?? DEFAULT_MAX_CONCURRENT,
     parserTimeoutMs: options.parserTimeoutMs ?? DEFAULT_PARSER_TIMEOUT_MS,
     parsePdf: options.parsePdf || defaultPdfParser,
-    parseDocx: options.parseDocx || defaultDocxParser
+    parseDocx: options.parseDocx || defaultDocxParser,
+    deployment
   };
   runtime.guard = createResearchGuard({
     rateUnits: runtime.rateUnits,
     rateWindowMs: options.rateWindowMs ?? DEFAULT_RATE_WINDOW_MS,
     maxConcurrent: runtime.maxConcurrent,
+    maxTotalUnits: deployment.maxResearchUnits,
     now: runtime.now
   });
 
   return createServer(async (request, response) => {
     try {
-      assertLocalRequestBoundary(request);
-      const url = new URL(request.url || "/", "http://localhost");
+      const healthUrl = new URL(request.url || "/", "http://localhost");
+      if (request.method === "GET" && healthUrl.pathname === "/api/health") {
+        sendJson(response, 200, { status: "ok" });
+        return;
+      }
+      assertRequestBoundary(request, deployment);
+      const url = new URL(request.url || "/", deployment.publicOrigin || "http://localhost");
       const clientId = request.socket.remoteAddress || "local";
       const apiMethods = new Map([
         ["/api/config", "GET"],
         ["/api/capabilities", "GET"],
+        ["/api/health", "GET"],
         ["/api/research", "POST"],
         ["/api/discover", "POST"],
         ["/api/trends", "POST"],
@@ -2192,7 +2326,7 @@ export function createProoflineServer(options = {}) {
 
       if (request.method === "POST" && url.pathname === "/api/open-data/signals") {
         const input = openDataInput(await readJsonBody(request));
-        const result = await runtime.guard.run(clientId, 1, () => collectOfficialOpenData({
+        const result = await runtime.guard.run(clientId, OPEN_DATA_PROVIDER_LIMITS.externalRequestsPerRun, () => collectOfficialOpenData({
           ...input,
           fetchImpl: runtime.fetchImpl,
           now: runtime.now
@@ -2247,7 +2381,7 @@ export function createProoflineServer(options = {}) {
               crossValidateWithExa: input.crossValidateWithExa
             });
           } catch (error) {
-            if (!(error instanceof HttpError) || !/^(?:UPSTREAM_|LOCAL_(?:RATE|CONCURRENCY)_LIMIT)/.test(error.code)) throw error;
+            if (!(error instanceof HttpError) || !/^(?:UPSTREAM_|LOCAL_(?:RATE|CONCURRENCY)_LIMIT|PUBLIC_DEMO_BUDGET_EXHAUSTED)/.test(error.code)) throw error;
             enrichmentWarning = {
               code: error.code,
               message: "Optional live web enrichment was unavailable. Local document evidence was preserved and remains unverified."
@@ -2262,12 +2396,15 @@ export function createProoflineServer(options = {}) {
           evidence: liveEvidence
         });
         const estimatedEnrichmentCredits = Math.min(queryPlan.length, MAX_SEARCH_QUERIES) + (input.links.length ? 1 : 0);
+        const processingSummary = runtime.deployment.publicDemo
+          ? "Document parsed on the ephemeral hosted server"
+          : "Document parsed locally";
         sendJson(response, 200, {
           researchId: research?.researchId || stableId("RES", "LOCAL_DOCUMENT", document.name, String(runtime.now())),
           mode: "DOCUMENT_INSPECTION",
           generatedAt: new Date(runtime.now()).toISOString(),
           provider: research?.provider || null,
-          summary: research?.summary || (enrichmentWarning ? "Document parsed locally; optional live web enrichment could not be completed." : "Document parsed locally; no live web research was performed."),
+          summary: research?.summary || (enrichmentWarning ? `${processingSummary}; optional live web enrichment could not be completed.` : `${processingSummary}; no live web research was performed.`),
           queries: research?.queries || [],
           evidence: [localEvidence, ...liveEvidence],
           ...contactProfile,
@@ -2302,6 +2439,8 @@ export function createProoflineServer(options = {}) {
           },
           privacy: {
             fullDocumentSentToResearchProvider: false,
+            documentProcessing: runtime.deployment.publicDemo ? "HOSTED_EPHEMERAL_SERVER" : "LOCAL_MACHINE_SERVER",
+            persistedByServer: false,
             planDerivedTermsShared: keywords.length > 0,
             sharedPlanKeywords: keywords,
             consentFlag: input.allowPlanKeywordsForWebResearch
@@ -2362,9 +2501,15 @@ const launchedDirectly = process.argv[1] && import.meta.url === pathToFileURL(pr
 
 if (launchedDirectly) {
   const port = Number(process.env.PORT || DEFAULT_PORT);
-  const server = createProoflineServer();
-  server.listen(port, "127.0.0.1", () => {
-    console.log(`Proofline is running at http://127.0.0.1:${port}`);
+  const deployment = deploymentSettings();
+  const server = createProoflineServer({
+    publicDemo: deployment.publicDemo,
+    publicOrigin: deployment.publicOrigin,
+    publicDemoMaxResearchUnits: deployment.maxResearchUnits
+  });
+  server.listen(port, deployment.bindHost, () => {
+    console.log(`Proofline is running at ${deployment.publicOrigin || `http://127.0.0.1:${port}`}`);
+    console.log(`Deployment mode: ${deployment.mode}`);
     console.log(`Live research: ${defaultTavilyKey ? "configured" : "offline demo mode"}`);
     console.log(`Exa cross-validation: ${defaultExaKey ? "configured" : "not configured"}`);
   });

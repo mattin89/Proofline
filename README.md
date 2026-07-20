@@ -173,14 +173,14 @@ The Opportunity score supports ranking; the policy engine controls eligibility. 
 
 ```mermaid
 flowchart LR
-  A["Browser SPA<br/>company · links · trends · plan"] --> B["Loopback Node API<br/>validation · privacy · request bounds"]
+  A["Browser SPA<br/>company · links · trends · plan"] --> B["Node API<br/>loopback or exact hosted origin"]
   B --> C["Tavily · optional Exa · GitHub<br/>official open datasets"]
   C --> D["Normalized evidence<br/>canonical URLs · source roles · provenance"]
   D --> E["Deterministic browser engine<br/>5 dimensions · coverage · uncertainty"]
   E --> F["Human workflow<br/>Queue · policy · non-binding check · outreach"]
 ```
 
-The server protects provider keys, validates requests, parses authorized documents locally, and returns normalized unreviewed evidence. Pure browser-side domain modules calculate the provisional or reviewed score. A workflow label can never override evidence or policy gates.
+The server protects provider keys, validates requests, parses authorized documents on the selected Proofline server, and returns normalized unreviewed evidence. Local mode is loopback-only. Hosted-demo mode binds externally only with an exact HTTPS host/origin allowlist and a bounded process-level research budget. Pure browser-side domain modules calculate the provisional or reviewed score. A workflow label can never override evidence or policy gates.
 
 See [Architecture](docs/ARCHITECTURE.md) for the data flow and trust boundaries.
 
@@ -190,7 +190,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the data flow and trust boundaries.
 |---|---|
 | Frontend | Framework-free HTML, CSS, and browser ES modules |
 | Backend | Node.js core HTTP server; no Express |
-| Document parsing | `pdf-parse` and `mammoth`, executed locally |
+| Document parsing | `pdf-parse` and `mammoth`, executed in the Node server process |
 | Live research | Tavily Search/Extract; optional Exa Search cross-check |
 | Discovery context | GitHub Repository Search |
 | Official open data | GLEIF, ClinicalTrials.gov, NIH RePORTER, USAspending |
@@ -236,6 +236,19 @@ Open [http://127.0.0.1:4173](http://127.0.0.1:4173). Proofline binds to loopback
 
 Do not put secrets in browser code, screenshots, issues, or commits. `.env` and `.env.*` are ignored; only the blank `.env.example` belongs in Git.
 
+### Deploy the public demo on Render
+
+The repository includes a [`render.yaml`](render.yaml) Blueprint for one free Frankfurt web service. It pins Node 24, installs the pnpm lockfile, uses `/api/health`, enables exact-origin hosted mode, and caps process-lifetime public-demo research at 200 bounded units.
+
+1. In Render, create a new **Blueprint** from this repository.
+2. Enter `TAVILY_API` and, optionally, `EXA_API` and a least-privilege `GITHUB_TOKEN` when Render prompts for the `sync: false` values.
+3. Deploy and open the generated `https://…onrender.com` URL.
+4. Verify `/api/health` returns only `{"status":"ok"}` and run one frozen Emovo workflow before spending live credits.
+
+Render supplies `PORT` and `RENDER_EXTERNAL_URL`; do not commit either provider secret. The free service can sleep after inactivity, so the first request may be slower. The in-process 200-unit cap resets after a restart and is not a billing guarantee—also configure hard provider-side spend limits before sharing the link broadly.
+
+The public demo receives uploaded files in its ephemeral server memory. It does not intentionally persist them and never sends the full document to Tavily or Exa, but confidential business plans should not be uploaded to a public demo. Use the packaged Emovo PDF instead. Local mode remains the appropriate choice for sensitive authorized documents.
+
 ## One-minute demo
 
 1. Open **Live research → Analyze a startup**.
@@ -250,7 +263,7 @@ The deterministic demo uses nine reviewed evidence records across eight unique p
 ## Privacy and security
 
 - Provider keys remain server-side.
-- Full business-plan text remains local by default.
+- In local mode, full business-plan text stays on the local Node server. In hosted mode, the file reaches the ephemeral hosted server and is not intentionally persisted.
 - Only sanitized plan keywords may guide web search, and only after explicit consent.
 - URLs with credentials, localhost/private targets, and reserved IP ranges are rejected.
 - Upload size, parser time, concurrency, rate, query, result, and link counts are bounded.
